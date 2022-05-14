@@ -1,31 +1,15 @@
-import cuchaz.enigma.command.ConvertMappingsCommand
-
-buildscript {
-	repositories {
-		maven {
-			name "Fabric Repository"
-			url 'https://maven.fabricmc.net'
-		}
-	}
-
-	dependencies {
-		classpath "cuchaz:enigma:0.14.2.138"
-	}
-}
-
 plugins {
-	id 'maven'
 	id 'maven-publish'
 }
 
-static List<String> getPublishedVersions() {
-	def xml = new URL("https://maven.fabricmc.net/net/fabricmc/intermediary/maven-metadata.xml").text
-	def metadata = new XmlSlurper().parseText(xml)
-	def versions = metadata.versioning.versions.version*.text();
-	return versions
+repositories {
+	maven {
+		name "Fabric Repository"
+		url 'https://maven.fabricmc.net'
+	}
 }
 
-def publishedVersions = getPublishedVersions()
+import cuchaz.enigma.command.ConvertMappingsCommand
 
 def ENV = System.getenv()
 
@@ -37,12 +21,7 @@ file('mappings').eachFile {
 
 	def mcVer = it.name.replace(".tiny", "")
 
-	if (publishedVersions.contains(mcVer) && !(ENV.FORCE_PUBLISH == mcVer)) {
-		project.logger.lifecycle("Skipping ${mcVer} as it has already been released")
-		return
-	} else {
-		project.logger.lifecycle("Building ${mcVer}")
-	}
+	project.logger.lifecycle("Building ${mcVer}")
 
 	published = true
 
@@ -69,8 +48,8 @@ file('mappings').eachFile {
 	Jar makeV2Jar = makeJar(mcVer, v2MappingFile, true)
 
 
-	build.dependsOn makeV1Jar
-	build.dependsOn makeV2Jar
+	// build.dependsOn makeV1Jar
+	// build.dependsOn makeV2Jar
 
 	makeV2Jar.dependsOn conversionTask
 
@@ -110,13 +89,14 @@ def makeJar(String mcVersion, File mappings, boolean v2) {
 
 publishing {
 	repositories {
-		if (ENV.MAVEN_URL) {
-			maven {
-				url ENV.MAVEN_URL
-				credentials {
-					username ENV.MAVEN_USERNAME
-					password ENV.MAVEN_PASSWORD
-				}
+		maven {
+			name = "cloudsmith"
+			url = "https://maven.cloudsmith.io/fabricistooeasy/intermediary/"
+			credentials {
+				def envUsername = System.getenv("CLOUDSMITH_USER")
+				def envPassword = System.getenv("CLOUDSMITH_KEY")
+				username = envUsername == null ? findProperty("CLOUDSMITH_USER") : envUsername
+				password = envPassword == null ? findProperty("CLOUDSMITH_KEY") : envPassword
 			}
 		}
 	}
