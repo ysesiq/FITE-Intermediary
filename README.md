@@ -1,3 +1,4 @@
+[![](https://jitpack.io/v/ysesiq/FITE-Intermediary.svg)](https://jitpack.io/#ysesiq/FITE-Intermediary)
 # Intermediary mappings
 
 This repository contains the match information between different versions of Minecraft created by the Fabric project, as well as the "intermediary" mappings we use, that is an intermediary naming form which tries to keep names
